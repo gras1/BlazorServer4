@@ -1,0 +1,92 @@
+﻿@page "/searchproducts"
+
+@using BlazorServer4.ClassLibrary
+@using Microsoft.AspNetCore.ProtectedBrowserStorage
+@inject BlazorServer4.DataAccess.IProductCategoryData _productCategoryData
+@inject ProtectedLocalStorage _protectedLocalStore
+@inject BlazorServer4.DataAccess.IShoppingBasketItemData _shoppingBasketItemData
+
+<style>
+    table.table tbody tr td img {
+        width: 100px;
+    }
+</style>
+
+<div class="top-row px-4">
+    <BlazorServer4.Web.Components.ShoppingBasket @ref="_shoppingBasketDisplay" DisplayType="ShoppingBasketDisplayType.Banner" />
+</div>
+
+<div class="content px-4">
+    <h1>Search Products</h1>
+
+    <p>This component demonstrates performing a search against a database.</p>
+
+    <input placeholder="Search Term" @bind="searchTerm" />
+    <button @onclick="Search">Search Products</button>
+
+    @if (_productCategories == null)
+    {
+        <p><em>No matching products ...</em></p>
+    }
+    else
+    {
+        <p>Products matching @searchTerm</p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product Id</th>
+                    <th>Name</th>
+                    <th>Category Name</th>
+                    <th>Price</th>
+                    <th>Image</th>
+                    <th> </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var productCategory in _productCategories)
+                {
+                    <tr>
+                        <td>@productCategory.ProductId</td>
+                        <td>@productCategory.Name</td>
+                        <td>@productCategory.CategoryName</td>
+                        <td>£@(string.Format("{0:0.00}", productCategory.Price))</td>
+                        <td><img src="@productCategory.ImageFilePath" alt="@productCategory.Name image" /></td>
+                        <td><button @onclick="@(e => AddToBasket(e, productCategory.ProductId))">Add to basket</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private BlazorServer4.Web.Components.ShoppingBasket _shoppingBasketDisplay;
+    private string searchTerm;
+
+    private ICollection<ProductCategory> _productCategories;
+
+    protected async Task Search()
+    {
+        if (!string.IsNullOrWhiteSpace(searchTerm) && searchTerm.Length >= 3)
+        {
+            _productCategories = await _productCategoryData.SearchProductsAsync(searchTerm);
+        }
+    }
+
+    protected async Task AddToBasket(MouseEventArgs e, int productId)
+    {
+        var shoppingBasketId = await _protectedLocalStore.GetAsync<Guid>("MyShoppingBasket");
+
+        if (shoppingBasketId != null)
+        {
+            var sbi = new ShoppingBasketItem
+            {
+                ProductId = productId,
+                Quantity = 1,
+                ShoppingBasketId = shoppingBasketId
+            };
+            await _shoppingBasketItemData.AddShoppingBasketItem(sbi);
+            await _shoppingBasketDisplay.UpdateNumberOfItems();
+        }
+    }
+}

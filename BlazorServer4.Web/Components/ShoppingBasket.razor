@@ -1,0 +1,82 @@
+﻿@using BlazorServer4.ClassLibrary
+@using Microsoft.AspNetCore.ProtectedBrowserStorage
+@inject ProtectedLocalStorage _protectedLocalStore
+@inject BlazorServer4.DataAccess.IShoppingBasketItemData _shoppingBasketItemData
+@inject BlazorServer4.DataAccess.IShoppingBasketProductData _shoppingBasketProductData
+
+<h3>Shopping Basket</h3>
+@{
+    if (DisplayType == ShoppingBasketDisplayType.Banner)
+    {
+        <p>Number of Items @_numberOfItems</p>
+    }
+    else
+    {
+        if (_shoppingBasketItemProducts == null || _shoppingBasketItemProducts.Count == 0)
+        {
+            <p><em>Shopping Basket Empty</em></p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Price Each</th>
+                        <th>Quantity</th>
+                        <th>Price Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var shoppingBasketItemProduct in _shoppingBasketItemProducts)
+                    {
+                        <tr>
+                            <td>@shoppingBasketItemProduct.Name</td>
+                            <td>£@(string.Format("{0:0.00}", shoppingBasketItemProduct.PriceEach))</td>
+                            <td>@shoppingBasketItemProduct.Quantity</td>
+                            <td>£@(string.Format("{0:0.00}", shoppingBasketItemProduct.PriceTotal))</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <button>Choose delivery slot</button>
+        }
+    }
+}
+
+@code {
+    private int _numberOfItems;
+
+    private ICollection<ShoppingBasketItemProduct> _shoppingBasketItemProducts;
+
+    [Parameter]
+    public ShoppingBasketDisplayType DisplayType { get; set; }
+
+    public async Task UpdateNumberOfItems()
+    {
+        var shoppingBasketId = await _protectedLocalStore.GetAsync<Guid>("MyShoppingBasket");
+
+        if (shoppingBasketId != null)
+        {
+            _numberOfItems = await _shoppingBasketItemData.GetShoppingBasketItemQuantity(shoppingBasketId);
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (DisplayType == ShoppingBasketDisplayType.FullPage)
+        {
+            var shoppingBasketId = await _protectedLocalStore.GetAsync<Guid>("MyShoppingBasket");
+
+            if (shoppingBasketId != null)
+            {
+                _shoppingBasketItemProducts = await _shoppingBasketProductData.GetShoppingBasketItems(shoppingBasketId);
+            }
+        }
+        else
+        {
+            await UpdateNumberOfItems();
+        }
+    }
+}

@@ -1,0 +1,37 @@
+﻿@page "/"
+
+@using Microsoft.AspNetCore.ProtectedBrowserStorage
+@inject ProtectedLocalStorage _protectedLocalStore
+@inject BlazorServer4.DataAccess.IShoppingBasketData _shoppingBasketData
+
+<div class="top-row px-4">
+    &nbsp;
+</div>
+
+<div class="content px-4">
+    <h1>Groceries Application</h1>
+</div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var shoppingBasketId = await _protectedLocalStore.GetAsync<string>("MyShoppingBasket");
+
+                if (string.IsNullOrWhiteSpace(shoppingBasketId))
+                {
+                    var shoppingBasketIdGuid = await _shoppingBasketData.AddShoppingBasket();
+                    shoppingBasketId = shoppingBasketIdGuid.ToString();
+                    await _protectedLocalStore.SetAsync("MyShoppingBasket", shoppingBasketId);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+    }
+}
