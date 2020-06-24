@@ -25,17 +25,19 @@
                         <th>Price Each</th>
                         <th>Quantity</th>
                         <th>Price Total</th>
+                        <th> </th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var shoppingBasketItemProduct in _shoppingBasketItemProducts)
                     {
-                        <tr>
-                            <td>@shoppingBasketItemProduct.Name</td>
-                            <td>£@(string.Format("{0:0.00}", shoppingBasketItemProduct.PriceEach))</td>
-                            <td>@shoppingBasketItemProduct.Quantity</td>
-                            <td>£@(string.Format("{0:0.00}", shoppingBasketItemProduct.PriceTotal))</td>
-                        </tr>
+                    <tr>
+                        <td>@shoppingBasketItemProduct.Name</td>
+                        <td>£@(string.Format("{0:0.00}", shoppingBasketItemProduct.PriceEach))</td>
+                        <td>@shoppingBasketItemProduct.Quantity</td>
+                        <td>£@(string.Format("{0:0.00}", shoppingBasketItemProduct.PriceTotal))</td>
+                        <td><button @onclick="@(e => RemoveFromBasket(e, shoppingBasketItemProduct.ProductId))">Remove from basket</button></td>
+                    </tr>
                     }
                 </tbody>
             </table>
@@ -52,6 +54,17 @@
 
     [Parameter]
     public ShoppingBasketDisplayType DisplayType { get; set; }
+
+    protected async Task RemoveFromBasket(MouseEventArgs e, int productId)
+    {
+        var shoppingBasketId = await _protectedLocalStore.GetAsync<Guid>("MyShoppingBasket");
+
+        if (shoppingBasketId != null)
+        {
+            await _shoppingBasketItemData.DeleteShoppingBasketItem(shoppingBasketId, productId);
+            _shoppingBasketItemProducts = await _shoppingBasketProductData.GetShoppingBasketItems(shoppingBasketId);
+        }
+    }
 
     public async Task UpdateNumberOfItems()
     {

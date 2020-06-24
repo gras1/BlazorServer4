@@ -35,6 +35,7 @@ namespace BlazorServer4.DataAccess
                 {
                     productCategories[counter] = new ShoppingBasketItemProduct
                     {
+                        ProductId = shoppingBasketItem.ProductId,
                         Name = foundProduct.Name,
                         PriceEach = foundProduct.Price,
                         Quantity = shoppingBasketItem.Quantity,

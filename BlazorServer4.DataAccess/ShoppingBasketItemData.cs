@@ -56,6 +56,16 @@ namespace BlazorServer4.DataAccess
             return await _dbContext.ShoppingBasketItems.Where(sbi => sbi.ShoppingBasketId == shoppingBasketId).SumAsync(sbi => sbi.Quantity);
         }
 
+        public async Task DeleteShoppingBasketItem(Guid shoppingBasketId, int productId)
+        {
+            var existingShoppingBasketItem = _dbContext.ShoppingBasketItems.FirstOrDefault(sbi => sbi.ShoppingBasketId == shoppingBasketId && sbi.ProductId == productId);
+            if (existingShoppingBasketItem != null)
+            {
+                _dbContext.ShoppingBasketItems.Remove(existingShoppingBasketItem);
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+
         ~ShoppingBasketItemData()
         {
             if (_dbContext != null)

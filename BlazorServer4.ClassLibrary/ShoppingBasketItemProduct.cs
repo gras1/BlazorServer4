@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BlazorServer4.ClassLibrary
+﻿namespace BlazorServer4.ClassLibrary
 {
     public class ShoppingBasketItemProduct
     {
+        public int ProductId { get; set; }
+
         public string Name { get; set; }
 
         public decimal PriceEach { get; set; }

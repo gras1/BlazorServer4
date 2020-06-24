@@ -11,5 +11,7 @@ namespace BlazorServer4.DataAccess
         IAsyncEnumerable<ClassLibrary.ShoppingBasketItem> GetShoppingBasketItems(Guid shoppingBasketId);
 
         Task<int> GetShoppingBasketItemQuantity(Guid shoppingBasketId);
+
+        Task DeleteShoppingBasketItem(Guid shoppingBasketId, int productId);
     }
 }
